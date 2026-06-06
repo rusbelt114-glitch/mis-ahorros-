@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SAGT Ahorros | Meta Owen</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --text-main: #c9d1d9;
+            --text-muted: #8b949e;
+            --blue-accent: #1f6feb;
+            --neon-blue: #38bdf8;
+            --border-color: #30363d;
+            --danger: #f85149;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 20px;
+        }
+
+        /* Tablero Superior */
+        .dashboard {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .goal-title {
+            font-size: 14px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .balance {
+            font-size: 42px;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 16px;
+        }
+
+        .progress-container {
+            width: 100%;
+            background-color: #21262d;
+            border-radius: 8px;
+            height: 12px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--neon-blue);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Botón de Acción */
+        .btn-primary {
+            background-color: var(--blue-accent);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            cursor: pointer;
+            margin-bottom: 24px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary:active {
+            background-color: #1158c7;
+        }
+
+        /* Historial */
+        .history-header {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #ffffff;
+        }
+
+        .history-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-bottom: 20px;
+        }
+
+        .history-item {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .history-amount {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--neon-blue);
+        }
+
+        .history-time {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+        
+        .history-calc {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .modal h2 {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: #ffffff;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .input-group input {
+            width: 100%;
+            background-color: #0d1117;
+            border: 1px solid var(--border-color);
+            color: #ffffff;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .input-group input:focus {
+            border-color: var(--blue-accent);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn-cancel {
+            background-color: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            flex: 1;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .btn-save {
+            background-color: var(--blue-accent);
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            padding: 12px;
+            flex: 1;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+        <div class="goal-title">Meta Global: Moto Owen (2000 USD)</div>
+        <div class="balance"><span id="balanceDisplay">0</span> USD</div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="progress-text">
+            <span id="percentDisplay">0%</span>
+            <span>2000 USD</span>
+        </div>
+    </div>
+
+    <button class="btn-primary" onclick="openModal()">+ Registrar Ahorro</button>
+
+    <div class="history-header">Registro de Operaciones</div>
+    <div class="history-list" id="historyList">
+        </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h2>Nuevo Ingreso</h2>
+            <div class="input-group">
+                <label for="rateInput">Tasa de Cambio (BDV)</label>
+                <input type="number" id="rateInput" step="0.01" placeholder="Ej: 39.25" inputmode="decimal">
+            </div>
+            <div class="input-group">
+                <label for="amountInput">Monto en Bolívares (VES)</label>
+                <input type="number" id="amountInput" step="0.01" placeholder="Ej: 1500" inputmode="decimal">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+                <button class="btn-save" onclick="saveData()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables Core
+        const GOAL = 2000;
+        let currentBalance = 0;
+        let historyData = [];
+
+        // Inicialización de la Base de Datos Local
+        function initDB() {
+            const storedBalance = localStorage.getItem('sagt_balance');
+            const storedHistory = localStorage.getItem('sagt_history');
+            
+            if (storedBalance) currentBalance = parseFloat(storedBalance);
+            if (storedHistory) historyData = JSON.parse(storedHistory);
+            
+            updateUI();
+        }
+
+        // Formateador exacto de números (Omite decimales si es entero)
+        function formatNumber(num) {
+            return Number.isInteger(num) ? num.toString() : parseFloat(num.toFixed(2)).toString();
+        }
+
+        // Formateador estricto de tiempo (Venezuela, 12 Horas AM/PM)
+        function formatTime12H() {
+            const date = new Date();
+            const day = String(date.getDate()).padStart(2, '0');
+            const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+            const month = months[date.getMonth()];
+            
+            let hours = date.getHours();
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            
+            hours = hours % 12;
+            hours = hours ? hours : 12; // Transforma el 0 en 12
+            
+            return `${day} de ${month}, ${hours}:${minutes} ${ampm}`;
+        }
+
+        // Motor de Actualización de Interfaz
+        function updateUI() {
+            // Actualizar Dashboard
+            document.getElementById('balanceDisplay').innerText = formatNumber(currentBalance);
+            
+            let percent = (currentBalance / GOAL) * 100;
+            if (percent > 100) percent = 100;
+            
+            document.getElementById('progressBar').style.width = `${percent}%`;
+            document.getElementById('percentDisplay').innerText = `${formatNumber(percent)}%`;
+
+            // Renderizar Historial
+            const listContainer = document.getElementById('historyList');
+            listContainer.innerHTML = '';
+            
+            // Orden cronológico inverso (más reciente arriba)
+            const reversedHistory = [...historyData].reverse();
+            
+            reversedHistory.forEach(record => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerHTML = `
+                    <div class="history-info">
+                        <div class="history-amount">+ ${formatNumber(record.usdAdded)} USD</div>
+                        <div class="history-calc">${formatNumber(record.vesAmount)} VES ÷ Tasa ${formatNumber(record.rate)}</div>
+                        <div class="history-time">${record.timestamp}</div>
+                    </div>
+                `;
+                listContainer.appendChild(item);
+            });
+        }
+
+        // Control del Modal
+        function openModal() {
+            document.getElementById('rateInput').value = '';
+            document.getElementById('amountInput').value = '';
+            document.getElementById('modalOverlay').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').style.display = 'none';
+        }
+
+        // Motor de Cálculo y Almacenamiento
+        function saveData() {
+            const rate = parseFloat(document.getElementById('rateInput').value);
+            const amountVES = parseFloat(document.getElementById('amountInput').value);
+
+            // Verificación matemática lógica
+            if (isNaN(rate) || isNaN(amountVES) || rate <= 0 || amountVES <= 0) {
+                alert("Error: Verifica que la tasa y el monto sean números válidos mayores a cero.");
+                return;
+            }
+
+            // Cálculo interno preciso
+            const rawUSD = amountVES / rate;
+            const preciseUSD = parseFloat(rawUSD.toFixed(4)); 
+
+            // Sumatoria al balance
+            currentBalance += preciseUSD;
+
+            // Creación del registro
+            const newRecord = {
+                rate: rate,
+                vesAmount: amountVES,
+                usdAdded: preciseUSD,
+                timestamp: formatTime12H()
+            };
+
+            historyData.push(newRecord);
+
+            // Ejecución de guardado local
+            localStorage.setItem('sagt_balance', currentBalance.toString());
+            localStorage.setItem('sagt_history', JSON.stringify(historyData));
+
+            updateUI();
+            closeModal();
+        }
+
+        // Iniciar app
+        initDB();
+    </script>
+</body>
+</html>
